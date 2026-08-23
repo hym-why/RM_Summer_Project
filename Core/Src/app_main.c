@@ -151,10 +151,12 @@ static void RunPidLineFollow(void)
 
 void App_Main(void)
 {
-    Motor_Init(&MOTOR_PWM_TIMER);
-
     /* Change this mode as your project progresses, then commit each step. */
-    AppMode mode = APP_MODE_PID_LINE_FOLLOW;
+    AppMode mode = APP_MODE_DIGIT_COUNTER;
+
+    if (mode != APP_MODE_DIGIT_COUNTER) {
+        Motor_Init(&MOTOR_PWM_TIMER);
+    }
 
     switch (mode) {
     case APP_MODE_DIGIT_COUNTER:
@@ -175,4 +177,3 @@ void App_Main(void)
         break;
     }
 }
-
