@@ -2,17 +2,37 @@
 
 本仓库面向 STM32F103C8T6 小车底板，按暑期 project 要求组织代码和文档。
 
+## 当前默认程序
+
+当前 `Core/Inc/project_config.h` 中配置为：
+
+```c
+#define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
+```
+
+也就是最终版：按下扩展板用户按键后，小车开始 PID 循迹；再次按下按键后停止。
+
+如果要验收中间步骤，可以把该宏改成：
+
+```c
+APP_MODE_DIGIT_COUNTER
+APP_MODE_MOTOR_DIRECTION_TEST
+APP_MODE_START_STOP
+APP_MODE_LINE_FOLLOW
+APP_MODE_PID_LINE_FOLLOW
+```
+
 ## 进度对应
 
 1. 创建 GitHub 仓库，并把本工程推送上去。
 2. `display` 模块：7 位数码管每秒显示 0-9 循环。
 3. `motor` + `button` 模块：L298N 驱动两个直流电机，按键切换正反转。
 4. `line_follow` 文档和代码：读取 RPR220 循迹模块，设计沿黑线行走策略。
-5. `documents/Car_Is_Ready.png`：组装完成后把照片放到这里。
+5. `documents/Car_Is_Ready.png`：你已经完成组装后，把实物照片放到这里。
 6. `app_mode_start_stop`：按键启动直行，再按停止。
 7. `app_mode_line_follow`：按键后开始循迹。
 8. 可继续调 S 弯等线路。
-9. `pid` 模块：用 PID 修正左右轮速度，降低抖动。
+9. `pid` 模块：用 PID 修正左右轮速度，降低抖动；参数集中在 `project_config.h`。
 
 ## 硬件要点
 
@@ -73,6 +93,12 @@ RPR220 三/四路循迹模块：
 4. 先用低速循迹，确认不会冲出线，再逐步增大 `base_speed`。
 5. 最后再调 PID，先调 `kp`，再少量加 `kd`，最后一般不急着加 `ki`。
 
+## 不能由代码直接完成的内容
+
+- GitHub 仓库创建与登录授权：需要你在浏览器中完成账号登录，并把本地提交 push 到远程。
+- `documents/Car_Is_Ready.png`：需要你用手机拍摄已经组装好的小车，并放入该路径。
+- 实车参数调试：电机方向、黑白电平、循迹速度和 PID 参数必须按你的真实硬件微调。
+
 ## Git 提交建议
 
 按作业要求每一步都提交一次：
@@ -88,4 +114,3 @@ git commit -m "step7: add line following mode"
 git commit -m "step9: add pid correction"
 git push
 ```
-
