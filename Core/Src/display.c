@@ -18,8 +18,8 @@ static const SegmentPin kSegments[8] = {
 };
 
 static const uint8_t kDigitMask[10] = {
-    0x3F, /* 0: a b c d e f */
-    0x06, /* 1: b c */
+    0x3F, /* 0 */
+    0x06, /* 1 */
     0x5B, /* 2 */
     0x4F, /* 3 */
     0x66, /* 4 */

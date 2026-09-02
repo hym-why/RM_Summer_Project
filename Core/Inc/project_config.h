@@ -9,23 +9,27 @@ typedef enum {
     APP_MODE_PID_LINE_FOLLOW,
 } AppMode;
 
-/* Select the function to demonstrate before compiling.
- * For the final project, use APP_MODE_PID_LINE_FOLLOW.
- */
+/* Change only this value when demonstrating an intermediate requirement. */
 #define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
 
-#define MOTOR_TEST_SPEED       550
-#define STRAIGHT_DRIVE_SPEED   500
-#define LINE_BASE_SPEED        430
-#define PID_LINE_BASE_SPEED    560
+#define MOTOR_MAX_SPEED          999
+#define MOTOR_TEST_SPEED         520
+#define STRAIGHT_DRIVE_SPEED     480
+#define LINE_BASE_SPEED          380
+#define PID_LINE_BASE_SPEED      440
 
-#define LINE_OPEN_LOOP_TURN    220
-#define LINE_LOST_SEARCH_SPEED 260
+/* Set either value to -1 if that wheel runs opposite to the expected direction. */
+#define MOTOR_LEFT_POLARITY       1
+#define MOTOR_RIGHT_POLARITY      1
 
-#define PID_KP                 260.0f
-#define PID_KI                 0.0f
-#define PID_KD                 45.0f
-#define PID_OUTPUT_LIMIT       380.0f
+#define MOTOR_REVERSE_DELAY_MS  150u
+#define LINE_CONTROL_PERIOD_MS   10u
+#define LINE_OPEN_LOOP_TURN      210
+#define LINE_LOST_SEARCH_SPEED   230
+
+#define PID_KP                   190.0f
+#define PID_KI                     0.0f
+#define PID_KD                     0.8f
+#define PID_OUTPUT_LIMIT         350.0f
 
 #endif
-

@@ -1,8 +1,6 @@
 #ifndef PID_H
 #define PID_H
 
-#include <stdint.h>
-
 typedef struct {
     float kp;
     float ki;
@@ -17,4 +15,3 @@ float PID_Update(PidController *pid, float error, float dt_s);
 void PID_Reset(PidController *pid);
 
 #endif
-

@@ -27,9 +27,7 @@ float PID_Update(PidController *pid, float error, float dt_s)
         dt_s = 0.001f;
     }
 
-    pid->integral += error * dt_s;
-    pid->integral = Clamp(pid->integral, pid->output_limit);
-
+    pid->integral = Clamp(pid->integral + error * dt_s, pid->output_limit);
     float derivative = (error - pid->last_error) / dt_s;
     pid->last_error = error;
 
@@ -42,4 +40,3 @@ void PID_Reset(PidController *pid)
     pid->integral = 0.0f;
     pid->last_error = 0.0f;
 }
-

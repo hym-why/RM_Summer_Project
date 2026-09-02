@@ -14,4 +14,3 @@ void Button_Init(Button *button);
 bool Button_UpdatePressedEvent(Button *button, uint32_t now_ms);
 
 #endif
-

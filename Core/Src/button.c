@@ -18,6 +18,7 @@ void Button_Init(Button *button)
 bool Button_UpdatePressedEvent(Button *button, uint32_t now_ms)
 {
     bool sample = ReadRawPressed();
+
     if (sample != button->last_sample) {
         button->last_sample = sample;
         button->last_change_ms = now_ms;
@@ -34,4 +35,3 @@ bool Button_UpdatePressedEvent(Button *button, uint32_t now_ms)
 
     return false;
 }
-

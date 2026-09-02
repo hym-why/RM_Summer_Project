@@ -1,11 +1,10 @@
 #include "motor.h"
 #include "board_config.h"
-
-#define MOTOR_MAX_SPEED 1000
+#include "project_config.h"
 
 static TIM_HandleTypeDef *s_pwm;
 
-static int16_t ClampSpeed(int16_t speed)
+static int16_t ClampSpeed(int32_t speed)
 {
     if (speed > MOTOR_MAX_SPEED) {
         return MOTOR_MAX_SPEED;
@@ -13,27 +12,24 @@ static int16_t ClampSpeed(int16_t speed)
     if (speed < -MOTOR_MAX_SPEED) {
         return -MOTOR_MAX_SPEED;
     }
-    return speed;
+    return (int16_t)speed;
 }
 
 static void SetDirection(GPIO_TypeDef *in1_port, uint16_t in1_pin,
                          GPIO_TypeDef *in2_port, uint16_t in2_pin,
                          MotorDirection direction)
 {
-    switch (direction) {
-    case MOTOR_DIR_FORWARD:
-        HAL_GPIO_WritePin(in1_port, in1_pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(in2_port, in2_pin, GPIO_PIN_RESET);
-        break;
-    case MOTOR_DIR_BACKWARD:
-        HAL_GPIO_WritePin(in1_port, in1_pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(in2_port, in2_pin, GPIO_PIN_SET);
-        break;
-    default:
-        HAL_GPIO_WritePin(in1_port, in1_pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(in2_port, in2_pin, GPIO_PIN_RESET);
-        break;
+    GPIO_PinState in1 = GPIO_PIN_RESET;
+    GPIO_PinState in2 = GPIO_PIN_RESET;
+
+    if (direction == MOTOR_DIR_FORWARD) {
+        in1 = GPIO_PIN_SET;
+    } else if (direction == MOTOR_DIR_BACKWARD) {
+        in2 = GPIO_PIN_SET;
     }
+
+    HAL_GPIO_WritePin(in1_port, in1_pin, in1);
+    HAL_GPIO_WritePin(in2_port, in2_pin, in2);
 }
 
 static void SetPwm(uint32_t channel, uint16_t duty)
@@ -51,8 +47,9 @@ void Motor_Init(TIM_HandleTypeDef *pwm_timer)
 
 void Motor_SetLeft(int16_t speed)
 {
-    speed = ClampSpeed(speed);
+    speed = ClampSpeed((int32_t)speed * MOTOR_LEFT_POLARITY);
     MotorDirection direction = MOTOR_DIR_STOP;
+
     if (speed > 0) {
         direction = MOTOR_DIR_FORWARD;
     } else if (speed < 0) {
@@ -67,8 +64,9 @@ void Motor_SetLeft(int16_t speed)
 
 void Motor_SetRight(int16_t speed)
 {
-    speed = ClampSpeed(speed);
+    speed = ClampSpeed((int32_t)speed * MOTOR_RIGHT_POLARITY);
     MotorDirection direction = MOTOR_DIR_STOP;
+
     if (speed > 0) {
         direction = MOTOR_DIR_FORWARD;
     } else if (speed < 0) {
@@ -91,4 +89,3 @@ void Motor_Stop(void)
 {
     Motor_SetBoth(0, 0);
 }
-

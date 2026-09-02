@@ -2,7 +2,7 @@
 #include "board_config.h"
 #include "project_config.h"
 
-static int16_t s_last_valid_error = 0;
+static int16_t s_last_valid_error;
 
 void LineSensor_Reset(void)
 {
@@ -12,6 +12,7 @@ void LineSensor_Reset(void)
 LineSensorState LineSensor_Read(void)
 {
     LineSensorState state;
+
     state.left_on_black = HAL_GPIO_ReadPin(LINE_LEFT_GPIO_Port, LINE_LEFT_Pin) == LINE_BLACK_LEVEL;
     state.right_on_black = HAL_GPIO_ReadPin(LINE_RIGHT_GPIO_Port, LINE_RIGHT_Pin) == LINE_BLACK_LEVEL;
     state.last_valid_error = s_last_valid_error;
@@ -40,8 +41,5 @@ LineSensorState LineSensor_Read(void)
 
 int16_t LineFollow_ComputeTurn(LineSensorState state)
 {
-    if (state.lost) {
-        return 0;
-    }
-    return (int16_t)(state.error * LINE_OPEN_LOOP_TURN);
+    return state.lost ? 0 : (int16_t)(state.error * LINE_OPEN_LOOP_TURN);
 }

@@ -3,24 +3,24 @@
 
 #include "main.h"
 
-/* Seven-segment display on the STM32_10B base board.
- * Schematic labels map segments to PA0-PA7. The display is common-anode,
- * so a segment turns on when the GPIO outputs RESET/low.
+/* STM32_10B base board seven-segment display.
+ * The schematic maps a,b,c,d,e,f,g,dp to PA0-PA7.
+ * The display is common-anode, so low level turns a segment on.
  */
-#define SEG_A_GPIO_Port GPIOA
-#define SEG_A_Pin       GPIO_PIN_0
-#define SEG_B_GPIO_Port GPIOA
-#define SEG_B_Pin       GPIO_PIN_1
-#define SEG_C_GPIO_Port GPIOA
-#define SEG_C_Pin       GPIO_PIN_2
-#define SEG_D_GPIO_Port GPIOA
-#define SEG_D_Pin       GPIO_PIN_3
-#define SEG_E_GPIO_Port GPIOA
-#define SEG_E_Pin       GPIO_PIN_4
-#define SEG_F_GPIO_Port GPIOA
-#define SEG_F_Pin       GPIO_PIN_5
-#define SEG_G_GPIO_Port GPIOA
-#define SEG_G_Pin       GPIO_PIN_6
+#define SEG_A_GPIO_Port  GPIOA
+#define SEG_A_Pin        GPIO_PIN_0
+#define SEG_B_GPIO_Port  GPIOA
+#define SEG_B_Pin        GPIO_PIN_1
+#define SEG_C_GPIO_Port  GPIOA
+#define SEG_C_Pin        GPIO_PIN_2
+#define SEG_D_GPIO_Port  GPIOA
+#define SEG_D_Pin        GPIO_PIN_3
+#define SEG_E_GPIO_Port  GPIOA
+#define SEG_E_Pin        GPIO_PIN_4
+#define SEG_F_GPIO_Port  GPIOA
+#define SEG_F_Pin        GPIO_PIN_5
+#define SEG_G_GPIO_Port  GPIOA
+#define SEG_G_Pin        GPIO_PIN_6
 #define SEG_DP_GPIO_Port GPIOA
 #define SEG_DP_Pin       GPIO_PIN_7
 
@@ -49,10 +49,7 @@
 #define LINE_RIGHT_GPIO_Port GPIOA
 #define LINE_RIGHT_Pin       GPIO_PIN_12
 
-/* Most comparator-style RPR220 modules output low on black.
- * Flip this to GPIO_PIN_SET if your module behaves the other way.
- */
-#define LINE_BLACK_LEVEL GPIO_PIN_RESET
+/* The supplied LM358 module drives D0 high when black is detected. */
+#define LINE_BLACK_LEVEL GPIO_PIN_SET
 
 #endif
-
