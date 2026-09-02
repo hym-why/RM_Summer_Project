@@ -1,6 +1,6 @@
 # RM 电控组暑期 Project
 
-本仓库面向 STM32F103C8T6 小车底板，按暑期 project 要求组织代码和文档。
+本仓库面向 STM32F103C8T6 小车底板，按暑期 project 要求组织代码和文档。仓库已经包含可直接由 CLion/CMake 构建的 CubeMX 工程、HAL/CMSIS 驱动、链接脚本和 `RM.ioc`。
 
 ## 当前默认程序
 
@@ -43,7 +43,7 @@ APP_MODE_PID_LINE_FOLLOW
 - 蜂鸣器：`PB0`。
 - STM32：`STM32F103C8T6`。
 
-L298N 与 RPR220 的实际 IO 请按你的接线修改 `Core/Inc/board_config.h`。建议先按 README 里的默认接线接，调通后再整理线束。
+L298N 与 RPR220 按下表接线；若实物接线不同，在 `Core/Inc/board_config.h` 中统一修改。
 
 ## 推荐接线
 
@@ -67,37 +67,32 @@ RPR220 三/四路循迹模块：
 | --- | --- |
 | LEFT | PA11 |
 | RIGHT | PA12 |
-| VCC | 3.3V 或 5V，按模块说明 |
+| VCC | 3.3V |
 | GND | GND |
 
-如果你的循迹模块有 4 路或 5 路，把多出来的输出接到空闲 IO，并在 `line_follow.c` 中扩展权重。
+硬件资料中的 LM358 模块在检测到黑线时 `D0` 为高电平，代码已配置为 `GPIO_PIN_SET`。如果实测相反，只需修改 `LINE_BLACK_LEVEL`。
 
 ## CLion 使用方式
 
-1. 用 STM32CubeMX 新建 `STM32F103C8T6` 工程，Toolchain/IDE 选择 `CMake` 或 `STM32CubeIDE` 后导出。
-2. 把本仓库 `Core/Inc` 和 `Core/Src` 中同名用户代码复制/合并到 CubeMX 工程。
-3. 在 CubeMX 中配置：
-   - `PA0-PA7`：GPIO Output，推挽输出。
-   - `PA15`：GPIO Input，Pull-up。
-   - `PB0`：GPIO Output。
-   - `PB12-PB15`：GPIO Output。
-   - `PB6/PB7`：TIM4 PWM 输出。
-   - `PA11/PA12`：GPIO Input。
-4. 在 CLion 打开工程，编译下载。
+1. 在 CLion 中直接打开仓库根目录。
+2. 在 CMake 配置中设置 `ARM_TOOLCHAIN_DIR`，指向 `arm-none-eabi-gcc.exe` 所在目录；当前开发电脑会自动使用已安装路径。
+3. 重新加载 CMake，选择 `RM.elf`，执行 Build。
+4. 方形 USB 下载接口使用板载 CH340；无需外接 TX/RX。串口自动下载需要反相后的 DTR/RTS 电平，详见 `documents/acceptance_steps.md`。
 
 ## 调试顺序
 
 1. 只烧录数码管模式，确认 `0-9` 每秒循环。
 2. 架空车轮测试电机方向，若方向反了，交换电机两根线或改 `MOTOR_DIR_FORWARD`。
-3. 用手按循迹模块下方黑/白区域，观察 `LineSensor_Read()` 的状态。
+3. 在黑线和白底上移动循迹模块，观察数码管状态和模块指示灯。
 4. 先用低速循迹，确认不会冲出线，再逐步增大 `base_speed`。
 5. 最后再调 PID，先调 `kp`，再少量加 `kd`，最后一般不急着加 `ki`。
 
 ## 不能由代码直接完成的内容
 
-- GitHub 仓库创建与登录授权：需要你在浏览器中完成账号登录，并把本地提交 push 到远程。
 - `documents/Car_Is_Ready.png`：需要你用手机拍摄已经组装好的小车，并放入该路径。
 - 实车参数调试：电机方向、黑白电平、循迹速度和 PID 参数必须按你的真实硬件微调。
+
+完整验收顺序见 `documents/acceptance_steps.md`。
 
 ## Git 提交建议
 
