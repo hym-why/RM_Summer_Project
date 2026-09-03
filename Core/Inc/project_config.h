@@ -11,7 +11,7 @@ typedef enum {
 } AppMode;
 
 /* Change only this value when demonstrating an intermediate requirement. */
-#define PROJECT_APP_MODE APP_MODE_LINE_SENSOR_TEST
+#define PROJECT_APP_MODE APP_MODE_LINE_FOLLOW
 
 #define MOTOR_MAX_SPEED          999
 #define MOTOR_TEST_SPEED         600
@@ -19,7 +19,7 @@ typedef enum {
 #define MOTOR_RAMP_STEP           50
 #define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
-#define LINE_BASE_SPEED          380
+#define LINE_BASE_SPEED          260
 #define PID_LINE_BASE_SPEED      440
 
 /* Set either value to -1 if that wheel runs opposite to the expected direction. */
@@ -28,8 +28,8 @@ typedef enum {
 
 #define MOTOR_REVERSE_DELAY_MS  300u
 #define LINE_CONTROL_PERIOD_MS   10u
-#define LINE_OPEN_LOOP_TURN      210
-#define LINE_LOST_SEARCH_SPEED   230
+#define LINE_OPEN_LOOP_TURN      180
+#define LINE_LOST_SEARCH_SPEED   180
 #define PID_LINE_MIN_SPEED       280
 #define PID_TURN_SLOWDOWN        160
 

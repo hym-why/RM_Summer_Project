@@ -7,10 +7,10 @@
 当前 `Core/Inc/project_config.h` 中配置为：
 
 ```c
-#define PROJECT_APP_MODE APP_MODE_LINE_SENSOR_TEST
+#define PROJECT_APP_MODE APP_MODE_LINE_FOLLOW
 ```
 
-当前用于Task 4验收：电机保持停止，数码管直接显示两个RPR220的检测状态。
+当前用于首次低速循迹：按一次扩展板按键开始沿黑线行驶，再按一次停止。
 
 如果要验收中间步骤，可以把该宏改成：
 
