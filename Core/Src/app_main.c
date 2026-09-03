@@ -133,6 +133,12 @@ static void RunStartStop(void)
     }
 }
 
+static void KickStartLineFollow(void)
+{
+    Motor_SetBoth(LINE_START_BOOST_SPEED, LINE_START_BOOST_SPEED);
+    HAL_Delay(LINE_START_BOOST_MS);
+}
+
 static void RunLineFollow(void)
 {
     Button key;
@@ -143,6 +149,9 @@ static void RunLineFollow(void)
     Motor_Stop();
     SetLostWarning(false);
     Display_ShowDigit(running ? 1 : 0);
+    if (running) {
+        KickStartLineFollow();
+    }
 
     while (1) {
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
@@ -154,6 +163,7 @@ static void RunLineFollow(void)
                 Display_ShowDigit(0);
             } else {
                 Display_ShowDigit(1);
+                KickStartLineFollow();
             }
         }
 

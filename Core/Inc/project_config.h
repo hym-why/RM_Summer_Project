@@ -31,6 +31,8 @@ typedef enum {
 #define LINE_OPEN_LOOP_TURN      300
 #define LINE_LOST_SEARCH_SPEED   240
 #define LINE_FOLLOW_AUTO_START     1
+#define LINE_START_BOOST_SPEED   520
+#define LINE_START_BOOST_MS      150u
 #define PID_LINE_MIN_SPEED       280
 #define PID_TURN_SLOWDOWN        160
 
