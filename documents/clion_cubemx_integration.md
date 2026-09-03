@@ -13,15 +13,16 @@ GPIO：
 | PA0-PA7 | GPIO_Output | 数码管 a,b,c,d,e,f,g,dp，默认高电平熄灭 |
 | PA15 | GPIO_Input + Pull-up | 用户按键，按下为低 |
 | PB0 | GPIO_Output | 蜂鸣器 |
-| PB12-PB15 | GPIO_Output | L298N 四个方向输入 |
 | PA11/PA12 | GPIO_Input | 左/右循迹模块输出 |
 
 PWM：
 
 | 引脚 | 定时器 | 说明 |
 | --- | --- | --- |
-| PB6 | TIM4_CH1 PWM | 左电机 ENA |
-| PB7 | TIM4_CH2 PWM | 右电机 ENB |
+| PB6 | TIM4_CH1 PWM | 左电机正转输入 IN1 |
+| PB7 | TIM4_CH2 PWM | 左电机反转输入 IN2 |
+| PB8 | TIM4_CH3 PWM | 右电机正转输入 IN3 |
+| PB9 | TIM4_CH4 PWM | 右电机反转输入 IN4 |
 
 TIM4 推荐：
 
@@ -52,10 +53,10 @@ App_Main();
 
 ## 3. 模式切换
 
-打开 `Core/Src/app_main.c`，修改：
+打开 `Core/Inc/project_config.h`，修改：
 
 ```c
-AppMode mode = APP_MODE_PID_LINE_FOLLOW;
+#define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
 ```
 
 可选值：
@@ -74,8 +75,7 @@ APP_MODE_PID_LINE_FOLLOW
 
 - 数码管显示反了：检查是否共阳。如果是共阴，把 `display.c` 里的高低电平逻辑反过来。
 - 按键无反应：确认 PA15 已从 JTAG 释放，并启用上拉。
-- 电机只响不转：先架空轮子，提高 PWM 到 700；再检查 L298N ENA/ENB 跳帽或 PWM 线。
+- 电机只响不转：先架空轮子，检查供电电压、PB6-PB9接线以及L298N的ENA/ENB跳帽，再逐步提高PWM。
 - 车往后走：交换电机线，或在 `Motor_SetBoth()` 调用处把速度正负反过来。
 - 循迹方向反：交换左右传感器线，或把 `line_follow.c` 中 error 的正负调换。
 - 黑白识别反：修改 `board_config.h` 的 `LINE_BLACK_LEVEL`。
-

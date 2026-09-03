@@ -28,11 +28,11 @@ APP_MODE_PID_LINE_FOLLOW
 2. `display` 模块：7 位数码管每秒显示 0-9 循环。
 3. `motor` + `button` 模块：L298N 驱动两个直流电机，按键切换正反转。
 4. `line_follow` 文档和代码：读取 RPR220 循迹模块，设计沿黑线行走策略。
-5. `documents/Car_Is_Ready.png`：你已经完成组装后，把实物照片放到这里。
+5. [`documents/Car_Is_Ready.png`](documents/Car_Is_Ready.png)：已加入组装完成的实车照片。
 6. `app_mode_start_stop`：按键启动直行，再按停止。
 7. `app_mode_line_follow`：按键后开始循迹。
-8. 可继续调 S 弯等线路。
-9. `pid` 模块：用 PID 修正左右轮速度，降低抖动；参数集中在 `project_config.h`。
+8. 已加入弯道自动降速、丢线搜索和蜂鸣提示；S弯最终速度等待实车标定。
+9. `pid` 模块：用带微分滤波和抗积分饱和的PID修正左右轮速度；参数集中在 `project_config.h`。
 
 ## 硬件要点
 
@@ -51,17 +51,16 @@ L298N：
 
 | L298N | STM32 |
 | --- | --- |
-| IN1 | PB12 |
-| IN2 | PB13 |
-| IN3 | PB14 |
-| IN4 | PB15 |
-| ENA | PB6/TIM4_CH1 |
-| ENB | PB7/TIM4_CH2 |
+| IN1（左轮正转） | PB6/TIM4_CH1 |
+| IN2（左轮反转） | PB7/TIM4_CH2 |
+| IN3（右轮正转） | PB8/TIM4_CH3 |
+| IN4（右轮反转） | PB9/TIM4_CH4 |
+| ENA / ENB | 保留常高跳帽 |
 | GND | GND |
 | +12V/VMS | 电池正极 |
 | 5V | 按模块跳帽说明使用 |
 
-RPR220 三/四路循迹模块：
+左右两个RPR220循迹模块：
 
 | 模块输出 | STM32 |
 | --- | --- |
@@ -82,21 +81,22 @@ RPR220 三/四路循迹模块：
 ## 调试顺序
 
 1. 只烧录数码管模式，确认 `0-9` 每秒循环。
-2. 架空车轮测试电机方向，若方向反了，交换电机两根线或改 `MOTOR_DIR_FORWARD`。
+2. 架空车轮测试电机方向，若方向反了，交换该电机两根线或修改对应极性宏。
 3. 在黑线和白底上移动循迹模块，观察数码管状态和模块指示灯。
 4. 先用低速循迹，确认不会冲出线，再逐步增大 `base_speed`。
-5. 最后再调 PID，先调 `kp`，再少量加 `kd`，最后一般不急着加 `ki`。
+5. 最后再调 PID，先调 `kp`，再少量加 `kd`，最后一般不急着加 `ki`；完整记录方法见 [`documents/s_curve_pid_tuning.md`](documents/s_curve_pid_tuning.md)。
 
-## 不能由代码直接完成的内容
+## 实车验收边界
 
-- `documents/Car_Is_Ready.png`：需要你用手机拍摄已经组装好的小车，并放入该路径。
-- 实车参数调试：电机方向、黑白电平、循迹速度和 PID 参数必须按你的真实硬件微调。
+- 代码、CubeMX配置、照片和电机演示已经入库。
+- RPR220高度、黑白阈值、电机极性和PID最终参数必须以实车场地测量为准，仓库不会把未进行的实车测试标记为通过。
 
 完整验收顺序见 `documents/acceptance_steps.md`。
+当前完成情况见 [`documents/test_record.md`](documents/test_record.md)。
 
 ## 实车 Demo
 
-- [小车运行演示视频](documents/demo/car_demo.mp4)
+- [小车电机与按键演示视频](documents/demo/car_demo.mp4)
 
 ## Git 提交建议
 

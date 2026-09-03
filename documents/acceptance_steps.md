@@ -11,7 +11,7 @@
 | 要求 | 模式 | 预期现象 |
 | --- | --- | --- |
 | 2 | `APP_MODE_DIGIT_COUNTER` | 数码管每秒循环 0-9 |
-| 3 | `APP_MODE_MOTOR_DIRECTION_TEST` | 上电两轮转动；按扩展板用户键后停 150 ms 并反转；可重复 |
+| 3 | `APP_MODE_MOTOR_DIRECTION_TEST` | 上电两轮软启动；按扩展板用户键后停 300 ms、反转并再次软启动；可重复 |
 | 6 | `APP_MODE_START_STOP` | 初始停止；按键直行并显示 1；再按停止并显示 0 |
 | 7 | `APP_MODE_LINE_FOLLOW` | 初始停止；按键后使用固定修正量循迹；再按停止 |
 | 9 | `APP_MODE_PID_LINE_FOLLOW` | 初始停止；按键后使用 PID 循迹；再按停止 |
@@ -22,12 +22,12 @@
 
 | L298N | STM32 |
 | --- | --- |
-| IN1 / IN2 | PB12 / PB13 |
-| IN3 / IN4 | PB14 / PB15 |
-| ENA / ENB | PB6 / PB7 |
+| IN1 / IN2 | PB6 / PB7（TIM4_CH1/CH2） |
+| IN3 / IN4 | PB8 / PB9（TIM4_CH3/CH4） |
+| ENA / ENB | 保留模块上的常高跳帽 |
 | GND | GND |
 
-使用 PB6/PB7 PWM 调速时，取下 L298N 的 ENA、ENB 常高跳帽。电机转向相反时，优先交换该电机的两根输出线；也可把 `MOTOR_LEFT_POLARITY` 或 `MOTOR_RIGHT_POLARITY` 设为 `-1`。
+四个输入脚直接使用TIM4 PWM调速，L298N的ENA、ENB保持使能。电机转向相反时，优先交换该电机的两根输出线；也可把 `MOTOR_LEFT_POLARITY` 或 `MOTOR_RIGHT_POLARITY` 设为 `-1`。
 
 ## RPR220 接线与标定
 
@@ -53,9 +53,9 @@ COM 号以设备管理器实际显示为准。`-R -B` 用于匹配底板上反�
 
 1. 先把车速保持较低，`PID_KI` 保持 0。
 2. 增加 `PID_KP`，直到能明显纠偏但尚未连续左右摆动。
-3. 小幅增加 `PID_KD` 抑制摆动。
+3. 小幅增加 `PID_KD` 抑制摆动；当前二值传感器基线为 `0.8`，每次只改 `0.1-0.2`。
 4. S 弯冲线时先降低 `PID_LINE_BASE_SPEED`，再微调 `PID_KP/PID_KD`。
-5. 每组参数至少完整跑一圈，并记录在 `documents/test_record_template.md`。
+5. 每组参数至少完整跑三圈，并记录在 `documents/test_record_template.md`；S弯方法见 `documents/s_curve_pid_tuning.md`。
 
 ## 必须由本人完成
 

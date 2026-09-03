@@ -18,10 +18,10 @@
 - `Core/Inc/display.h`
 - `Core/Inc/board_config.h`
 
-`App_Main()` 当前默认模式为：
+验收本步骤时，在`Core/Inc/project_config.h`中选择：
 
 ```c
-AppMode mode = APP_MODE_DIGIT_COUNTER;
+#define PROJECT_APP_MODE APP_MODE_DIGIT_COUNTER
 ```
 
 对应执行函数：
@@ -95,4 +95,3 @@ App_Main();
 - 数字残缺：检查某个 GPIO 是否配置错误，或数码管段线是否与 `board_config.h` 不一致。
 - 亮灭反了：说明实际数码管可能不是共阳，把 `display.c` 中 `GPIO_PIN_RESET` 和 `GPIO_PIN_SET` 的逻辑对调。
 - 下载后没变化：确认 `main.c` 已经调用 `App_Main()`。
-
