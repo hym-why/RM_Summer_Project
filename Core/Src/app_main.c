@@ -16,6 +16,36 @@ static void Beep(uint32_t ms)
     HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
 
+static int16_t AbsSpeed(int16_t value)
+{
+    return value < 0 ? (int16_t)-value : value;
+}
+
+static void SetLostWarning(bool lost)
+{
+    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin,
+                      lost ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+static void SearchForLine(LineSensorState line)
+{
+    int16_t direction = line.last_valid_error < 0 ? -1 : 1;
+    int16_t turn = (int16_t)(direction * LINE_LOST_SEARCH_SPEED);
+
+    Motor_SetBoth(turn, (int16_t)-turn);
+    SetLostWarning(true);
+    Display_ShowDigit(8);
+}
+
+static int16_t ComputeAdaptiveBaseSpeed(int16_t turn)
+{
+    int32_t reduction = (int32_t)AbsSpeed(turn) * PID_TURN_SLOWDOWN
+                      / (int32_t)PID_OUTPUT_LIMIT;
+    int16_t base = (int16_t)(PID_LINE_BASE_SPEED - reduction);
+
+    return base < PID_LINE_MIN_SPEED ? PID_LINE_MIN_SPEED : base;
+}
+
 static void RunDigitCounter(void)
 {
     uint8_t digit = 0;
@@ -77,7 +107,7 @@ static void RunStartStop(void)
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
             running = !running;
             if (running) {
-                Motor_SetBoth(STRAIGHT_DRIVE_SPEED, STRAIGHT_DRIVE_SPEED);
+                RampMotors(STRAIGHT_DRIVE_SPEED);
                 Display_ShowDigit(1);
             } else {
                 Motor_Stop();
@@ -96,6 +126,7 @@ static void RunLineFollow(void)
     Button_Init(&key);
     LineSensor_Reset();
     Motor_Stop();
+    SetLostWarning(false);
     Display_ShowDigit(0);
 
     while (1) {
@@ -104,6 +135,7 @@ static void RunLineFollow(void)
             LineSensor_Reset();
             if (!running) {
                 Motor_Stop();
+                SetLostWarning(false);
                 Display_ShowDigit(0);
             } else {
                 Display_ShowDigit(1);
@@ -113,14 +145,12 @@ static void RunLineFollow(void)
         if (running) {
             LineSensorState line = LineSensor_Read();
             if (line.lost) {
-                int16_t turn = line.last_valid_error < 0 ? -LINE_OPEN_LOOP_TURN : LINE_OPEN_LOOP_TURN;
-                Motor_SetBoth((int16_t)(LINE_LOST_SEARCH_SPEED + turn),
-                              (int16_t)(LINE_LOST_SEARCH_SPEED - turn));
-                Display_ShowDigit(8);
+                SearchForLine(line);
             } else {
                 int16_t turn = LineFollow_ComputeTurn(line);
                 Motor_SetBoth((int16_t)(LINE_BASE_SPEED + turn),
                               (int16_t)(LINE_BASE_SPEED - turn));
+                SetLostWarning(false);
                 Display_ShowDigit((uint8_t)(line.error + 1));
             }
             HAL_Delay(LINE_CONTROL_PERIOD_MS);
@@ -138,9 +168,11 @@ static void RunPidLineFollow(void)
     uint32_t last_control_ms = HAL_GetTick();
 
     Button_Init(&key);
-    PID_Init(&pid, PID_KP, PID_KI, PID_KD, PID_OUTPUT_LIMIT);
+    PID_Init(&pid, PID_KP, PID_KI, PID_KD,
+             PID_OUTPUT_LIMIT, PID_DERIVATIVE_ALPHA);
     LineSensor_Reset();
     Motor_Stop();
+    SetLostWarning(false);
     Display_ShowDigit(0);
 
     while (1) {
@@ -153,6 +185,7 @@ static void RunPidLineFollow(void)
             last_control_ms = now;
             if (!running) {
                 Motor_Stop();
+                SetLostWarning(false);
                 Display_ShowDigit(0);
             } else {
                 Display_ShowDigit(1);
@@ -169,16 +202,16 @@ static void RunPidLineFollow(void)
         LineSensorState line = LineSensor_Read();
 
         if (line.lost) {
-            int16_t turn = line.last_valid_error < 0 ? -LINE_OPEN_LOOP_TURN : LINE_OPEN_LOOP_TURN;
-            Motor_SetBoth((int16_t)(LINE_LOST_SEARCH_SPEED + turn),
-                          (int16_t)(LINE_LOST_SEARCH_SPEED - turn));
-            Display_ShowDigit(8);
+            PID_Reset(&pid);
+            SearchForLine(line);
             continue;
         }
 
-        float turn = PID_Update(&pid, (float)line.error, dt);
-        Motor_SetBoth((int16_t)((float)PID_LINE_BASE_SPEED + turn),
-                      (int16_t)((float)PID_LINE_BASE_SPEED - turn));
+        int16_t turn = (int16_t)PID_Update(&pid, (float)line.error, dt);
+        int16_t base_speed = ComputeAdaptiveBaseSpeed(turn);
+        Motor_SetBoth((int16_t)(base_speed + turn),
+                      (int16_t)(base_speed - turn));
+        SetLostWarning(false);
         Display_ShowDigit((uint8_t)(line.error + 1));
     }
 }

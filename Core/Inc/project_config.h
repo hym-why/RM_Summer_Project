@@ -29,10 +29,13 @@ typedef enum {
 #define LINE_CONTROL_PERIOD_MS   10u
 #define LINE_OPEN_LOOP_TURN      210
 #define LINE_LOST_SEARCH_SPEED   230
+#define PID_LINE_MIN_SPEED       280
+#define PID_TURN_SLOWDOWN        160
 
 #define PID_KP                   190.0f
 #define PID_KI                     0.0f
 #define PID_KD                     0.8f
 #define PID_OUTPUT_LIMIT         350.0f
+#define PID_DERIVATIVE_ALPHA       0.75f
 
 #endif
