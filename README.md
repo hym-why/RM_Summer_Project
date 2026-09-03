@@ -94,6 +94,10 @@ RPR220 三/四路循迹模块：
 
 完整验收顺序见 `documents/acceptance_steps.md`。
 
+## 实车 Demo
+
+- [小车运行演示视频](documents/demo/car_demo.mp4)
+
 ## Git 提交建议
 
 按作业要求每一步都提交一次：
