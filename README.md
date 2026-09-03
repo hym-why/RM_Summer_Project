@@ -7,16 +7,17 @@
 当前 `Core/Inc/project_config.h` 中配置为：
 
 ```c
-#define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
+#define PROJECT_APP_MODE APP_MODE_LINE_SENSOR_TEST
 ```
 
-也就是最终版：按下扩展板用户按键后，小车开始 PID 循迹；再次按下按键后停止。
+当前用于Task 4验收：电机保持停止，数码管直接显示两个RPR220的检测状态。
 
 如果要验收中间步骤，可以把该宏改成：
 
 ```c
 APP_MODE_DIGIT_COUNTER
 APP_MODE_MOTOR_DIRECTION_TEST
+APP_MODE_LINE_SENSOR_TEST
 APP_MODE_START_STOP
 APP_MODE_LINE_FOLLOW
 APP_MODE_PID_LINE_FOLLOW

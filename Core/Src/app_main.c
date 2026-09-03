@@ -94,6 +94,21 @@ static void RunMotorDirectionTest(void)
     }
 }
 
+static void RunLineSensorTest(void)
+{
+    LineSensor_Reset();
+    SetLostWarning(false);
+
+    while (1) {
+        LineSensorState line = LineSensor_Read();
+        uint8_t state = (line.left_on_black ? 1u : 0u)
+                      | (line.right_on_black ? 2u : 0u);
+
+        Display_ShowDigit(state);
+        HAL_Delay(20);
+    }
+}
+
 static void RunStartStop(void)
 {
     Button key;
@@ -220,7 +235,7 @@ void App_Main(void)
 {
     AppMode mode = PROJECT_APP_MODE;
 
-    if (mode != APP_MODE_DIGIT_COUNTER) {
+    if (mode != APP_MODE_DIGIT_COUNTER && mode != APP_MODE_LINE_SENSOR_TEST) {
         Motor_Init(&MOTOR_PWM_TIMER);
     }
 
@@ -230,6 +245,9 @@ void App_Main(void)
         break;
     case APP_MODE_MOTOR_DIRECTION_TEST:
         RunMotorDirectionTest();
+        break;
+    case APP_MODE_LINE_SENSOR_TEST:
+        RunLineSensorTest();
         break;
     case APP_MODE_START_STOP:
         RunStartStop();

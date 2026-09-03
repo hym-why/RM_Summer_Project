@@ -4,13 +4,14 @@
 typedef enum {
     APP_MODE_DIGIT_COUNTER = 0,
     APP_MODE_MOTOR_DIRECTION_TEST,
+    APP_MODE_LINE_SENSOR_TEST,
     APP_MODE_START_STOP,
     APP_MODE_LINE_FOLLOW,
     APP_MODE_PID_LINE_FOLLOW,
 } AppMode;
 
 /* Change only this value when demonstrating an intermediate requirement. */
-#define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
+#define PROJECT_APP_MODE APP_MODE_LINE_SENSOR_TEST
 
 #define MOTOR_MAX_SPEED          999
 #define MOTOR_TEST_SPEED         600
