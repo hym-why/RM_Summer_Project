@@ -31,18 +31,12 @@
 #define BUZZER_GPIO_Port GPIOB
 #define BUZZER_Pin       GPIO_PIN_0
 
-#define MOTOR_L_IN1_GPIO_Port GPIOB
-#define MOTOR_L_IN1_Pin       GPIO_PIN_12
-#define MOTOR_L_IN2_GPIO_Port GPIOB
-#define MOTOR_L_IN2_Pin       GPIO_PIN_13
-#define MOTOR_R_IN1_GPIO_Port GPIOB
-#define MOTOR_R_IN1_Pin       GPIO_PIN_14
-#define MOTOR_R_IN2_GPIO_Port GPIOB
-#define MOTOR_R_IN2_Pin       GPIO_PIN_15
-
-#define MOTOR_PWM_TIMER       htim4
-#define MOTOR_L_PWM_CHANNEL   TIM_CHANNEL_1
-#define MOTOR_R_PWM_CHANNEL   TIM_CHANNEL_2
+/* Tutorial base board: each H-bridge input is driven by one TIM4 PWM channel. */
+#define MOTOR_PWM_TIMER          htim4
+#define MOTOR_L_FORWARD_CHANNEL  TIM_CHANNEL_1 /* PB6 */
+#define MOTOR_L_BACKWARD_CHANNEL TIM_CHANNEL_2 /* PB7 */
+#define MOTOR_R_FORWARD_CHANNEL  TIM_CHANNEL_3 /* PB8 */
+#define MOTOR_R_BACKWARD_CHANNEL TIM_CHANNEL_4 /* PB9 */
 
 #define LINE_LEFT_GPIO_Port  GPIOA
 #define LINE_LEFT_Pin        GPIO_PIN_11

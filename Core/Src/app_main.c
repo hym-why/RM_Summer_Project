@@ -27,6 +27,21 @@ static void RunDigitCounter(void)
     }
 }
 
+static void RampMotors(int16_t target_speed)
+{
+    int16_t direction = target_speed < 0 ? -1 : 1;
+    uint16_t target = (uint16_t)(target_speed < 0 ? -target_speed : target_speed);
+
+    for (uint16_t speed = MOTOR_RAMP_START_SPEED; speed < target;
+         speed = (uint16_t)(speed + MOTOR_RAMP_STEP)) {
+        int16_t signed_speed = (int16_t)(direction * (int16_t)speed);
+        Motor_SetBoth(signed_speed, signed_speed);
+        HAL_Delay(MOTOR_RAMP_STEP_MS);
+    }
+
+    Motor_SetBoth(target_speed, target_speed);
+}
+
 static void RunMotorDirectionTest(void)
 {
     Button key;
@@ -34,16 +49,15 @@ static void RunMotorDirectionTest(void)
 
     Button_Init(&key);
     Display_ShowDigit(1);
-    Motor_SetBoth(MOTOR_TEST_SPEED, MOTOR_TEST_SPEED);
+    RampMotors(MOTOR_TEST_SPEED);
 
     while (1) {
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
             Motor_Stop();
             HAL_Delay(MOTOR_REVERSE_DELAY_MS);
             forward = !forward;
-            Motor_SetBoth(forward ? MOTOR_TEST_SPEED : -MOTOR_TEST_SPEED,
-                          forward ? MOTOR_TEST_SPEED : -MOTOR_TEST_SPEED);
             Display_ShowDigit(forward ? 1 : 2);
+            RampMotors(forward ? MOTOR_TEST_SPEED : -MOTOR_TEST_SPEED);
             Beep(40);
         }
         HAL_Delay(1);

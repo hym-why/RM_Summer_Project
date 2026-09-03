@@ -13,7 +13,10 @@ typedef enum {
 #define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
 
 #define MOTOR_MAX_SPEED          999
-#define MOTOR_TEST_SPEED         520
+#define MOTOR_TEST_SPEED         600
+#define MOTOR_RAMP_START_SPEED   100
+#define MOTOR_RAMP_STEP           50
+#define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
 #define LINE_BASE_SPEED          380
 #define PID_LINE_BASE_SPEED      440
@@ -22,7 +25,7 @@ typedef enum {
 #define MOTOR_LEFT_POLARITY       1
 #define MOTOR_RIGHT_POLARITY      1
 
-#define MOTOR_REVERSE_DELAY_MS  150u
+#define MOTOR_REVERSE_DELAY_MS  300u
 #define LINE_CONTROL_PERIOD_MS   10u
 #define LINE_OPEN_LOOP_TURN      210
 #define LINE_LOST_SEARCH_SPEED   230
