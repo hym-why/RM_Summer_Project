@@ -136,13 +136,13 @@ static void RunStartStop(void)
 static void RunLineFollow(void)
 {
     Button key;
-    bool running = false;
+    bool running = LINE_FOLLOW_AUTO_START != 0;
 
     Button_Init(&key);
     LineSensor_Reset();
     Motor_Stop();
     SetLostWarning(false);
-    Display_ShowDigit(0);
+    Display_ShowDigit(running ? 1 : 0);
 
     while (1) {
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
