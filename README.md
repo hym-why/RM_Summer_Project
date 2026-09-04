@@ -115,6 +115,7 @@ L298N：
 ## 实车 Demo
 
 - [小车电机与按键演示视频](documents/demo/car_demo.mp4)
+- [小车循迹演示视频](documents/demo/line_follow_demo.mp4)
 
 ## Git 提交建议
 
