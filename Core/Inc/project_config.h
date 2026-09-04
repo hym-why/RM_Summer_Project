@@ -19,13 +19,14 @@ typedef enum {
 #define MOTOR_RAMP_STEP           50
 #define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
-#define LINE_BASE_SPEED          440
+#define LINE_BASE_SPEED          420
 #define LINE_LEFT_TRIM             0
 #define LINE_RIGHT_TRIM            0
-#define LINE_TURN_OUTER_SPEED     560
-#define LINE_SENSOR_SWAP            1
-#define LINE_TURN_MIN_HOLD_MS      80u
-#define LINE_TURN_TIMEOUT_MS      900u
+#define LINE_TURN_OUTER_SPEED     620
+#define LINE_STATE_CONFIRM_MS      20u
+#define LINE_TURN_MIN_HOLD_MS     160u
+#define LINE_CENTER_CONFIRM_MS     60u
+#define LINE_TURN_TIMEOUT_MS     1100u
 #define PID_LINE_BASE_SPEED      440
 
 /* Set either value to -1 if that wheel runs opposite to the expected direction. */

@@ -149,12 +149,37 @@ static void DriveOneWheelTurn(int16_t direction)
     }
 }
 
+static uint8_t GetLinePattern(LineSensorState line)
+{
+    return (line.left_on_black ? 1u : 0u)
+         | (line.right_on_black ? 2u : 0u);
+}
+
+static void StartOrUpdateTurn(int16_t requested_direction,
+                              int16_t *turn_direction,
+                              uint32_t *turn_started_ms,
+                              uint32_t now)
+{
+    if (*turn_direction == 0 ||
+        (*turn_direction != requested_direction &&
+         (now - *turn_started_ms) >= LINE_TURN_MIN_HOLD_MS)) {
+        *turn_direction = requested_direction;
+        *turn_started_ms = now;
+    }
+
+    DriveOneWheelTurn(*turn_direction);
+}
+
 static void RunLineFollow(void)
 {
     Button key;
     bool running = LINE_FOLLOW_AUTO_START != 0;
     int16_t turn_direction = 0;
     uint32_t turn_started_ms = 0u;
+    uint32_t center_started_ms = 0u;
+    uint32_t candidate_started_ms = 0u;
+    uint8_t stable_pattern = 3u;
+    uint8_t candidate_pattern = 3u;
 
     Button_Init(&key);
     LineSensor_Reset();
@@ -171,6 +196,8 @@ static void RunLineFollow(void)
             LineSensor_Reset();
             turn_direction = 0;
             turn_started_ms = 0u;
+            center_started_ms = 0u;
+            candidate_started_ms = HAL_GetTick();
             if (!running) {
                 Motor_Stop();
                 SetLostWarning(false);
@@ -184,8 +211,47 @@ static void RunLineFollow(void)
         if (running) {
             uint32_t now = HAL_GetTick();
             LineSensorState line = LineSensor_Read();
+            uint8_t pattern = GetLinePattern(line);
 
-            if (line.lost) {
+            if (pattern != candidate_pattern) {
+                candidate_pattern = pattern;
+                candidate_started_ms = now;
+            } else if (pattern != stable_pattern &&
+                       (now - candidate_started_ms) >= LINE_STATE_CONFIRM_MS) {
+                stable_pattern = pattern;
+            }
+
+            Display_ShowDigit(stable_pattern);
+
+            if (stable_pattern == 1u) {
+                center_started_ms = 0u;
+                StartOrUpdateTurn(-1, &turn_direction, &turn_started_ms, now);
+                SetLostWarning(false);
+            } else if (stable_pattern == 2u) {
+                center_started_ms = 0u;
+                StartOrUpdateTurn(1, &turn_direction, &turn_started_ms, now);
+                SetLostWarning(false);
+            } else if (stable_pattern == 3u) {
+                if (turn_direction != 0 &&
+                    (now - turn_started_ms) < LINE_TURN_MIN_HOLD_MS) {
+                    center_started_ms = 0u;
+                    DriveOneWheelTurn(turn_direction);
+                } else {
+                    if (center_started_ms == 0u) {
+                        center_started_ms = now;
+                    }
+                    if (turn_direction != 0 &&
+                        (now - center_started_ms) < LINE_CENTER_CONFIRM_MS) {
+                        DriveOneWheelTurn(turn_direction);
+                    } else {
+                        turn_direction = 0;
+                        Motor_SetBoth((int16_t)(LINE_BASE_SPEED + LINE_LEFT_TRIM),
+                                      (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM));
+                    }
+                }
+                SetLostWarning(false);
+            } else {
+                center_started_ms = 0u;
                 if (turn_direction != 0 &&
                     (now - turn_started_ms) < LINE_TURN_TIMEOUT_MS) {
                     DriveOneWheelTurn(turn_direction);
@@ -194,26 +260,6 @@ static void RunLineFollow(void)
                     Motor_Stop();
                 }
                 SetLostWarning(true);
-                Display_ShowDigit(8);
-            } else if (line.error != 0) {
-                if (turn_direction == 0) {
-                    turn_direction = line.error;
-                    turn_started_ms = now;
-                }
-                DriveOneWheelTurn(turn_direction);
-                SetLostWarning(false);
-                Display_ShowDigit((uint8_t)(line.error + 1));
-            } else {
-                if (turn_direction != 0 &&
-                    (now - turn_started_ms) < LINE_TURN_MIN_HOLD_MS) {
-                    DriveOneWheelTurn(turn_direction);
-                } else {
-                    turn_direction = 0;
-                    Motor_SetBoth((int16_t)(LINE_BASE_SPEED + LINE_LEFT_TRIM),
-                                  (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM));
-                }
-                SetLostWarning(false);
-                Display_ShowDigit(1);
             }
             HAL_Delay(LINE_CONTROL_PERIOD_MS);
         } else {
