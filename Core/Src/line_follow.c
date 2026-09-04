@@ -12,9 +12,16 @@ void LineSensor_Reset(void)
 LineSensorState LineSensor_Read(void)
 {
     LineSensorState state;
+    uint8_t raw_left = HAL_GPIO_ReadPin(LINE_LEFT_GPIO_Port, LINE_LEFT_Pin) == LINE_BLACK_LEVEL;
+    uint8_t raw_right = HAL_GPIO_ReadPin(LINE_RIGHT_GPIO_Port, LINE_RIGHT_Pin) == LINE_BLACK_LEVEL;
 
-    state.left_on_black = HAL_GPIO_ReadPin(LINE_LEFT_GPIO_Port, LINE_LEFT_Pin) == LINE_BLACK_LEVEL;
-    state.right_on_black = HAL_GPIO_ReadPin(LINE_RIGHT_GPIO_Port, LINE_RIGHT_Pin) == LINE_BLACK_LEVEL;
+#if LINE_SENSOR_SWAP
+    state.left_on_black = raw_right;
+    state.right_on_black = raw_left;
+#else
+    state.left_on_black = raw_left;
+    state.right_on_black = raw_right;
+#endif
     state.last_valid_error = s_last_valid_error;
 
     if (state.left_on_black && !state.right_on_black) {

@@ -140,10 +140,21 @@ static void KickStartLineFollow(void)
     HAL_Delay(LINE_START_BOOST_MS);
 }
 
+static void DriveOneWheelTurn(int16_t direction)
+{
+    if (direction < 0) {
+        Motor_SetBoth(0, LINE_TURN_OUTER_SPEED);
+    } else {
+        Motor_SetBoth(LINE_TURN_OUTER_SPEED, 0);
+    }
+}
+
 static void RunLineFollow(void)
 {
     Button key;
     bool running = LINE_FOLLOW_AUTO_START != 0;
+    int16_t turn_direction = 0;
+    uint32_t turn_started_ms = 0u;
 
     Button_Init(&key);
     LineSensor_Reset();
@@ -158,6 +169,8 @@ static void RunLineFollow(void)
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
             running = !running;
             LineSensor_Reset();
+            turn_direction = 0;
+            turn_started_ms = 0u;
             if (!running) {
                 Motor_Stop();
                 SetLostWarning(false);
@@ -169,21 +182,38 @@ static void RunLineFollow(void)
         }
 
         if (running) {
+            uint32_t now = HAL_GetTick();
             LineSensorState line = LineSensor_Read();
+
             if (line.lost) {
-#if LINE_STOP_WHEN_LOST
-                Motor_Stop();
+                if (turn_direction != 0 &&
+                    (now - turn_started_ms) < LINE_TURN_TIMEOUT_MS) {
+                    DriveOneWheelTurn(turn_direction);
+                } else {
+                    turn_direction = 0;
+                    Motor_Stop();
+                }
                 SetLostWarning(true);
                 Display_ShowDigit(8);
-#else
-                SearchForLine(line);
-#endif
-            } else {
-                int16_t turn = LineFollow_ComputeTurn(line);
-                Motor_SetBoth((int16_t)(LINE_BASE_SPEED + LINE_LEFT_TRIM + turn),
-                              (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM - turn));
+            } else if (line.error != 0) {
+                if (turn_direction == 0) {
+                    turn_direction = line.error;
+                    turn_started_ms = now;
+                }
+                DriveOneWheelTurn(turn_direction);
                 SetLostWarning(false);
                 Display_ShowDigit((uint8_t)(line.error + 1));
+            } else {
+                if (turn_direction != 0 &&
+                    (now - turn_started_ms) < LINE_TURN_MIN_HOLD_MS) {
+                    DriveOneWheelTurn(turn_direction);
+                } else {
+                    turn_direction = 0;
+                    Motor_SetBoth((int16_t)(LINE_BASE_SPEED + LINE_LEFT_TRIM),
+                                  (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM));
+                }
+                SetLostWarning(false);
+                Display_ShowDigit(1);
             }
             HAL_Delay(LINE_CONTROL_PERIOD_MS);
         } else {
