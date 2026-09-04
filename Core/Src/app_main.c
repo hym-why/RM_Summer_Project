@@ -135,7 +135,8 @@ static void RunStartStop(void)
 
 static void KickStartLineFollow(void)
 {
-    Motor_SetBoth(LINE_START_BOOST_SPEED, LINE_START_BOOST_SPEED);
+    Motor_SetBoth((int16_t)(LINE_START_BOOST_SPEED + LINE_LEFT_TRIM),
+                  (int16_t)(LINE_START_BOOST_SPEED + LINE_RIGHT_TRIM));
     HAL_Delay(LINE_START_BOOST_MS);
 }
 
@@ -170,11 +171,17 @@ static void RunLineFollow(void)
         if (running) {
             LineSensorState line = LineSensor_Read();
             if (line.lost) {
+#if LINE_STOP_WHEN_LOST
+                Motor_Stop();
+                SetLostWarning(true);
+                Display_ShowDigit(8);
+#else
                 SearchForLine(line);
+#endif
             } else {
                 int16_t turn = LineFollow_ComputeTurn(line);
-                Motor_SetBoth((int16_t)(LINE_BASE_SPEED + turn),
-                              (int16_t)(LINE_BASE_SPEED - turn));
+                Motor_SetBoth((int16_t)(LINE_BASE_SPEED + LINE_LEFT_TRIM + turn),
+                              (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM - turn));
                 SetLostWarning(false);
                 Display_ShowDigit((uint8_t)(line.error + 1));
             }
