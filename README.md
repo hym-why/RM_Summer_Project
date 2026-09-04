@@ -111,6 +111,7 @@ L298N：
 
 完整验收顺序见 `documents/acceptance_steps.md`。
 当前完成情况见 [`documents/test_record.md`](documents/test_record.md)。
+当前代码、烧录状态和问题汇总见 [`documents/current_project_summary.md`](documents/current_project_summary.md)。
 
 ## 实车 Demo
 
