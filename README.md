@@ -104,6 +104,16 @@ L298N：
 4. 先用低速循迹，确认不会冲出线，再逐步增大 `base_speed`。
 5. 最后再调 PID，先调 `kp`，再少量加 `kd`，最后一般不急着加 `ki`；完整记录方法见 [`documents/s_curve_pid_tuning.md`](documents/s_curve_pid_tuning.md)。
 
+## 电脑仿真
+
+基础循迹状态机可以在电脑上运行，不需要连接开发板：
+
+```bash
+python tools/line_follow_sim.py
+```
+
+仿真器直接读取 `Core/Inc/project_config.h`，并自动验证直行、短暂左/右方向提示、无提示默认盲转和丢线超时停车。全部断言通过时，每个场景会输出 `PASS` 及对应的数码管和左右轮 PWM 变化。
+
 ## 实车验收边界
 
 - 代码、CubeMX配置、照片和电机演示已经入库。
