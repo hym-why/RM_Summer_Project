@@ -30,7 +30,7 @@ typedef enum {
 
 #define MOTOR_REVERSE_DELAY_MS  300u
 #define LINE_CONTROL_PERIOD_MS   10u
-#define LINE_OPEN_LOOP_TURN      160
+#define LINE_OPEN_LOOP_TURN        0
 #define LINE_LOST_SEARCH_SPEED   240
 #define LINE_FOLLOW_AUTO_START     1
 #define LINE_STOP_WHEN_LOST        1
