@@ -19,10 +19,13 @@ typedef enum {
 #define MOTOR_RAMP_STEP           50
 #define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
-#define LINE_BASE_SPEED          420
+#define LINE_BASE_SPEED          620
 #define LINE_LEFT_TRIM             0
 #define LINE_RIGHT_TRIM            0
-#define LINE_TURN_OUTER_SPEED     620
+#define LINE_TURN_OUTER_SPEED     820
+#define LINE_HINT_CONFIRM_MS        4u
+#define LINE_HINT_VALID_MS       800u
+#define LINE_BLIND_DEFAULT_DIRECTION (-1)
 #define LINE_STATE_CONFIRM_MS      20u
 #define LINE_TURN_MIN_HOLD_MS     160u
 #define LINE_CENTER_CONFIRM_MS     60u
@@ -34,11 +37,11 @@ typedef enum {
 #define MOTOR_RIGHT_POLARITY      1
 
 #define MOTOR_REVERSE_DELAY_MS  300u
-#define LINE_CONTROL_PERIOD_MS   10u
+#define LINE_CONTROL_PERIOD_MS    2u
 #define LINE_OPEN_LOOP_TURN        0
 #define LINE_LOST_SEARCH_SPEED   240
 #define LINE_FOLLOW_AUTO_START     1
-#define LINE_START_BOOST_SPEED   520
+#define LINE_START_BOOST_SPEED   850
 #define LINE_START_BOOST_MS      150u
 #define PID_LINE_MIN_SPEED       280
 #define PID_TURN_SLOWDOWN        160

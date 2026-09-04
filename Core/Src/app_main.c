@@ -170,22 +170,58 @@ static void StartOrUpdateTurn(int16_t requested_direction,
     DriveOneWheelTurn(*turn_direction);
 }
 
+static void UpdateDirectionHint(uint8_t pattern,
+                                uint8_t *candidate_pattern,
+                                uint32_t *candidate_started_ms,
+                                int16_t *last_hint,
+                                uint32_t *last_hint_ms,
+                                uint32_t now)
+{
+    if (pattern != 1u && pattern != 2u) {
+        *candidate_pattern = pattern;
+        *candidate_started_ms = now;
+        return;
+    }
+
+    if (pattern != *candidate_pattern) {
+        *candidate_pattern = pattern;
+        *candidate_started_ms = now;
+        return;
+    }
+
+    if ((now - *candidate_started_ms) >= LINE_HINT_CONFIRM_MS) {
+        *last_hint = pattern == 1u ? -1 : 1;
+        *last_hint_ms = now;
+    }
+}
+
 static void RunLineFollow(void)
 {
     Button key;
     bool running = LINE_FOLLOW_AUTO_START != 0;
     int16_t turn_direction = 0;
+    int16_t last_hint = 0;
     uint32_t turn_started_ms = 0u;
+    uint32_t last_hint_ms = 0u;
+    uint32_t lost_started_ms = 0u;
     uint32_t center_started_ms = 0u;
     uint32_t candidate_started_ms = 0u;
-    uint8_t stable_pattern = 3u;
-    uint8_t candidate_pattern = 3u;
+    uint32_t hint_candidate_started_ms = 0u;
+    uint8_t stable_pattern;
+    uint8_t candidate_pattern;
+    uint8_t hint_candidate_pattern;
+    bool lost_active = false;
 
     Button_Init(&key);
     LineSensor_Reset();
     Motor_Stop();
     SetLostWarning(false);
-    Display_ShowDigit(running ? 1 : 0);
+    stable_pattern = GetLinePattern(LineSensor_Read());
+    candidate_pattern = stable_pattern;
+    hint_candidate_pattern = stable_pattern;
+    candidate_started_ms = HAL_GetTick();
+    hint_candidate_started_ms = candidate_started_ms;
+    Display_ShowDigit(running ? stable_pattern : 0u);
     if (running) {
         KickStartLineFollow();
     }
@@ -195,15 +231,23 @@ static void RunLineFollow(void)
             running = !running;
             LineSensor_Reset();
             turn_direction = 0;
+            last_hint = 0;
             turn_started_ms = 0u;
+            last_hint_ms = 0u;
+            lost_started_ms = 0u;
             center_started_ms = 0u;
-            candidate_started_ms = HAL_GetTick();
+            lost_active = false;
             if (!running) {
                 Motor_Stop();
                 SetLostWarning(false);
                 Display_ShowDigit(0);
             } else {
-                Display_ShowDigit(1);
+                stable_pattern = GetLinePattern(LineSensor_Read());
+                candidate_pattern = stable_pattern;
+                hint_candidate_pattern = stable_pattern;
+                candidate_started_ms = HAL_GetTick();
+                hint_candidate_started_ms = candidate_started_ms;
+                Display_ShowDigit(stable_pattern);
                 KickStartLineFollow();
             }
         }
@@ -212,6 +256,13 @@ static void RunLineFollow(void)
             uint32_t now = HAL_GetTick();
             LineSensorState line = LineSensor_Read();
             uint8_t pattern = GetLinePattern(line);
+
+            UpdateDirectionHint(pattern,
+                                &hint_candidate_pattern,
+                                &hint_candidate_started_ms,
+                                &last_hint,
+                                &last_hint_ms,
+                                now);
 
             if (pattern != candidate_pattern) {
                 candidate_pattern = pattern;
@@ -225,13 +276,20 @@ static void RunLineFollow(void)
 
             if (stable_pattern == 1u) {
                 center_started_ms = 0u;
+                lost_active = false;
+                last_hint = -1;
+                last_hint_ms = now;
                 StartOrUpdateTurn(-1, &turn_direction, &turn_started_ms, now);
                 SetLostWarning(false);
             } else if (stable_pattern == 2u) {
                 center_started_ms = 0u;
+                lost_active = false;
+                last_hint = 1;
+                last_hint_ms = now;
                 StartOrUpdateTurn(1, &turn_direction, &turn_started_ms, now);
                 SetLostWarning(false);
             } else if (stable_pattern == 3u) {
+                lost_active = false;
                 if (turn_direction != 0 &&
                     (now - turn_started_ms) < LINE_TURN_MIN_HOLD_MS) {
                     center_started_ms = 0u;
@@ -252,8 +310,21 @@ static void RunLineFollow(void)
                 SetLostWarning(false);
             } else {
                 center_started_ms = 0u;
+
+                if (!lost_active) {
+                    lost_active = true;
+                    lost_started_ms = now;
+                    if (last_hint != 0 &&
+                        (now - last_hint_ms) <= LINE_HINT_VALID_MS) {
+                        turn_direction = last_hint;
+                    } else {
+                        turn_direction = LINE_BLIND_DEFAULT_DIRECTION;
+                    }
+                    turn_started_ms = now;
+                }
+
                 if (turn_direction != 0 &&
-                    (now - turn_started_ms) < LINE_TURN_TIMEOUT_MS) {
+                    (now - lost_started_ms) < LINE_TURN_TIMEOUT_MS) {
                     DriveOneWheelTurn(turn_direction);
                 } else {
                     turn_direction = 0;
