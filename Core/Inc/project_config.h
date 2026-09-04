@@ -20,7 +20,7 @@ typedef enum {
 #define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
 #define LINE_BASE_SPEED          380
-#define LINE_LEFT_TRIM            60
+#define LINE_LEFT_TRIM             0
 #define LINE_RIGHT_TRIM            0
 #define PID_LINE_BASE_SPEED      440
 
