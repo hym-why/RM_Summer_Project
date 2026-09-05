@@ -61,21 +61,12 @@ void Error_Handler(void);
 #define LED_GPIO_Port GPIOC
 #define USER_KEY_Pin GPIO_PIN_15
 #define USER_KEY_GPIO_Port GPIOA
-#define LINE_LEFT_Pin GPIO_PIN_11
-#define LINE_LEFT_GPIO_Port GPIOA
+#define LINE_LEFT_Pin GPIO_PIN_13
+#define LINE_LEFT_GPIO_Port GPIOB
 #define LINE_RIGHT_Pin GPIO_PIN_12
-#define LINE_RIGHT_GPIO_Port GPIOA
+#define LINE_RIGHT_GPIO_Port GPIOB
 #define BUZZER_Pin GPIO_PIN_0
 #define BUZZER_GPIO_Port GPIOB
-#define MOTOR_L_IN1_Pin GPIO_PIN_12
-#define MOTOR_L_IN1_GPIO_Port GPIOB
-#define MOTOR_L_IN2_Pin GPIO_PIN_13
-#define MOTOR_L_IN2_GPIO_Port GPIOB
-#define MOTOR_R_IN1_Pin GPIO_PIN_14
-#define MOTOR_R_IN1_GPIO_Port GPIOB
-#define MOTOR_R_IN2_Pin GPIO_PIN_15
-#define MOTOR_R_IN2_GPIO_Port GPIOB
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

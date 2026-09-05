@@ -38,10 +38,10 @@
 #define MOTOR_R_FORWARD_CHANNEL  TIM_CHANNEL_3 /* PB8 */
 #define MOTOR_R_BACKWARD_CHANNEL TIM_CHANNEL_4 /* PB9 */
 
-#define LINE_LEFT_GPIO_Port  GPIOA
-#define LINE_LEFT_Pin        GPIO_PIN_11
-#define LINE_RIGHT_GPIO_Port GPIOA
-#define LINE_RIGHT_Pin       GPIO_PIN_12
+#define LINE_LEFT_GPIO_Port  GPIOB
+#define LINE_LEFT_Pin        GPIO_PIN_13 /* P1 LO */
+#define LINE_RIGHT_GPIO_Port GPIOB
+#define LINE_RIGHT_Pin       GPIO_PIN_12 /* P1 RO */
 
 /* The supplied LM358 module drives D0 high when black is detected. */
 #define LINE_BLACK_LEVEL GPIO_PIN_SET

@@ -1,3 +1,4 @@
+
 #ifndef PROJECT_CONFIG_H
 #define PROJECT_CONFIG_H
 
@@ -11,7 +12,7 @@ typedef enum {
 } AppMode;
 
 /* Change only this value when demonstrating an intermediate requirement. */
-#define PROJECT_APP_MODE APP_MODE_LINE_FOLLOW
+#define PROJECT_APP_MODE APP_MODE_PID_LINE_FOLLOW
 
 #define MOTOR_MAX_SPEED          999
 #define MOTOR_TEST_SPEED         600
@@ -19,16 +20,18 @@ typedef enum {
 #define MOTOR_RAMP_STEP           50
 #define MOTOR_RAMP_STEP_MS        50u
 #define STRAIGHT_DRIVE_SPEED     480
-#define LINE_BASE_SPEED          620
+#define LINE_BASE_SPEED          450
 #define LINE_LEFT_TRIM             0
 #define LINE_RIGHT_TRIM            0
-#define LINE_TURN_OUTER_SPEED     820
+#define LINE_TURN_OUTER_SPEED     560
+#define LINE_TURN_INNER_SPEED     280
+#define LINE_LOST_TURN_SPEED      650
 #define LINE_HINT_CONFIRM_MS        4u
 #define LINE_HINT_VALID_MS       800u
 #define LINE_BLIND_DEFAULT_DIRECTION (-1)
 #define LINE_STATE_CONFIRM_MS      20u
-#define LINE_TURN_MIN_HOLD_MS     160u
-#define LINE_CENTER_CONFIRM_MS     60u
+#define LINE_TURN_MIN_HOLD_MS      60u
+#define LINE_CENTER_CONFIRM_MS     40u
 #define LINE_TURN_TIMEOUT_MS     1100u
 #define PID_LINE_BASE_SPEED      440
 
@@ -39,17 +42,14 @@ typedef enum {
 #define MOTOR_REVERSE_DELAY_MS  300u
 #define LINE_CONTROL_PERIOD_MS    2u
 #define LINE_OPEN_LOOP_TURN        0
-#define LINE_LOST_SEARCH_SPEED   240
-#define LINE_FOLLOW_AUTO_START     1
+#define LINE_LOST_SEARCH_SPEED   320
+#define LINE_FOLLOW_AUTO_START     0
 #define LINE_START_BOOST_SPEED   850
 #define LINE_START_BOOST_MS      150u
-#define PID_LINE_MIN_SPEED       280
-#define PID_TURN_SLOWDOWN        160
 
-#define PID_KP                   190.0f
+#define PID_KP                   140.0f
 #define PID_KI                     0.0f
-#define PID_KD                     0.8f
-#define PID_OUTPUT_LIMIT         350.0f
-#define PID_DERIVATIVE_ALPHA       0.75f
+#define PID_KD                     1.2f
+#define PID_OUTPUT_LIMIT         360.0f
 
 #endif

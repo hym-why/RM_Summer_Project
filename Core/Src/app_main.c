@@ -16,36 +16,6 @@ static void Beep(uint32_t ms)
     HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
 
-static int16_t AbsSpeed(int16_t value)
-{
-    return value < 0 ? (int16_t)-value : value;
-}
-
-static void SetLostWarning(bool lost)
-{
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin,
-                      lost ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
-static void SearchForLine(LineSensorState line)
-{
-    int16_t direction = line.last_valid_error < 0 ? -1 : 1;
-    int16_t turn = (int16_t)(direction * LINE_LOST_SEARCH_SPEED);
-
-    Motor_SetBoth(turn, (int16_t)-turn);
-    SetLostWarning(true);
-    Display_ShowDigit(8);
-}
-
-static int16_t ComputeAdaptiveBaseSpeed(int16_t turn)
-{
-    int32_t reduction = (int32_t)AbsSpeed(turn) * PID_TURN_SLOWDOWN
-                      / (int32_t)PID_OUTPUT_LIMIT;
-    int16_t base = (int16_t)(PID_LINE_BASE_SPEED - reduction);
-
-    return base < PID_LINE_MIN_SPEED ? PID_LINE_MIN_SPEED : base;
-}
-
 static void RunDigitCounter(void)
 {
     uint8_t digit = 0;
@@ -97,7 +67,6 @@ static void RunMotorDirectionTest(void)
 static void RunLineSensorTest(void)
 {
     LineSensor_Reset();
-    SetLostWarning(false);
 
     while (1) {
         LineSensorState line = LineSensor_Read();
@@ -122,7 +91,7 @@ static void RunStartStop(void)
         if (Button_UpdatePressedEvent(&key, HAL_GetTick())) {
             running = !running;
             if (running) {
-                RampMotors(STRAIGHT_DRIVE_SPEED);
+                Motor_SetBoth(STRAIGHT_DRIVE_SPEED, STRAIGHT_DRIVE_SPEED);
                 Display_ShowDigit(1);
             } else {
                 Motor_Stop();
@@ -142,10 +111,25 @@ static void KickStartLineFollow(void)
 
 static void DriveOneWheelTurn(int16_t direction)
 {
+    /* Differential turn: inner wheel keeps rolling slowly instead of
+       stopping completely, so the nose swings gently instead of
+       over-shooting (reduces straight-line wobble). */
     if (direction < 0) {
-        Motor_SetBoth(0, LINE_TURN_OUTER_SPEED);
+        Motor_SetBoth(LINE_TURN_INNER_SPEED, LINE_TURN_OUTER_SPEED);
     } else {
-        Motor_SetBoth(LINE_TURN_OUTER_SPEED, 0);
+        Motor_SetBoth(LINE_TURN_OUTER_SPEED, LINE_TURN_INNER_SPEED);
+    }
+}
+
+static void DrivePivotTurn(int16_t direction)
+{
+    /* Hard pivot (one wheel stopped): tightest turning radius, used
+       only when the line is LOST and the car must circle back to it.
+       Differential turning cannot recover from a lost line. */
+    if (direction < 0) {
+        Motor_SetBoth(0, LINE_LOST_TURN_SPEED);
+    } else {
+        Motor_SetBoth(LINE_LOST_TURN_SPEED, 0);
     }
 }
 
@@ -215,7 +199,6 @@ static void RunLineFollow(void)
     Button_Init(&key);
     LineSensor_Reset();
     Motor_Stop();
-    SetLostWarning(false);
     stable_pattern = GetLinePattern(LineSensor_Read());
     candidate_pattern = stable_pattern;
     hint_candidate_pattern = stable_pattern;
@@ -239,7 +222,6 @@ static void RunLineFollow(void)
             lost_active = false;
             if (!running) {
                 Motor_Stop();
-                SetLostWarning(false);
                 Display_ShowDigit(0);
             } else {
                 stable_pattern = GetLinePattern(LineSensor_Read());
@@ -280,14 +262,12 @@ static void RunLineFollow(void)
                 last_hint = -1;
                 last_hint_ms = now;
                 StartOrUpdateTurn(-1, &turn_direction, &turn_started_ms, now);
-                SetLostWarning(false);
             } else if (stable_pattern == 2u) {
                 center_started_ms = 0u;
                 lost_active = false;
                 last_hint = 1;
                 last_hint_ms = now;
                 StartOrUpdateTurn(1, &turn_direction, &turn_started_ms, now);
-                SetLostWarning(false);
             } else if (stable_pattern == 3u) {
                 lost_active = false;
                 if (turn_direction != 0 &&
@@ -307,7 +287,6 @@ static void RunLineFollow(void)
                                       (int16_t)(LINE_BASE_SPEED + LINE_RIGHT_TRIM));
                     }
                 }
-                SetLostWarning(false);
             } else {
                 center_started_ms = 0u;
 
@@ -325,12 +304,11 @@ static void RunLineFollow(void)
 
                 if (turn_direction != 0 &&
                     (now - lost_started_ms) < LINE_TURN_TIMEOUT_MS) {
-                    DriveOneWheelTurn(turn_direction);
+                    DrivePivotTurn(turn_direction);
                 } else {
                     turn_direction = 0;
                     Motor_Stop();
                 }
-                SetLostWarning(true);
             }
             HAL_Delay(LINE_CONTROL_PERIOD_MS);
         } else {
@@ -347,11 +325,9 @@ static void RunPidLineFollow(void)
     uint32_t last_control_ms = HAL_GetTick();
 
     Button_Init(&key);
-    PID_Init(&pid, PID_KP, PID_KI, PID_KD,
-             PID_OUTPUT_LIMIT, PID_DERIVATIVE_ALPHA);
+    PID_Init(&pid, PID_KP, PID_KI, PID_KD, PID_OUTPUT_LIMIT);
     LineSensor_Reset();
     Motor_Stop();
-    SetLostWarning(false);
     Display_ShowDigit(0);
 
     while (1) {
@@ -364,7 +340,6 @@ static void RunPidLineFollow(void)
             last_control_ms = now;
             if (!running) {
                 Motor_Stop();
-                SetLostWarning(false);
                 Display_ShowDigit(0);
             } else {
                 Display_ShowDigit(1);
@@ -381,16 +356,20 @@ static void RunPidLineFollow(void)
         LineSensorState line = LineSensor_Read();
 
         if (line.lost) {
-            PID_Reset(&pid);
-            SearchForLine(line);
+            /* Pivot back toward the line instead of driving straight:
+               LINE_OPEN_LOOP_TURN was 0, so the car just ran off curves. */
+            if (line.last_valid_error < 0) {
+                Motor_SetBoth(0, LINE_LOST_TURN_SPEED);
+            } else {
+                Motor_SetBoth(LINE_LOST_TURN_SPEED, 0);
+            }
+            Display_ShowDigit(8);
             continue;
         }
 
-        int16_t turn = (int16_t)PID_Update(&pid, (float)line.error, dt);
-        int16_t base_speed = ComputeAdaptiveBaseSpeed(turn);
-        Motor_SetBoth((int16_t)(base_speed + turn),
-                      (int16_t)(base_speed - turn));
-        SetLostWarning(false);
+        float turn = PID_Update(&pid, (float)line.error, dt);
+        Motor_SetBoth((int16_t)((float)PID_LINE_BASE_SPEED + turn),
+                      (int16_t)((float)PID_LINE_BASE_SPEED - turn));
         Display_ShowDigit((uint8_t)(line.error + 1));
     }
 }

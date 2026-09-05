@@ -11,21 +11,14 @@ static float Clamp(float value, float limit)
     return value;
 }
 
-void PID_Init(PidController *pid, float kp, float ki, float kd,
-              float output_limit, float derivative_alpha)
+void PID_Init(PidController *pid, float kp, float ki, float kd, float output_limit)
 {
     pid->kp = kp;
     pid->ki = ki;
     pid->kd = kd;
     pid->integral = 0.0f;
     pid->last_error = 0.0f;
-    pid->derivative = 0.0f;
     pid->output_limit = output_limit;
-    pid->derivative_alpha = Clamp(derivative_alpha, 1.0f);
-    if (pid->derivative_alpha < 0.0f) {
-        pid->derivative_alpha = 0.0f;
-    }
-    pid->initialized = 0u;
 }
 
 float PID_Update(PidController *pid, float error, float dt_s)
@@ -34,34 +27,16 @@ float PID_Update(PidController *pid, float error, float dt_s)
         dt_s = 0.001f;
     }
 
-    float derivative = 0.0f;
-    if (pid->initialized) {
-        float raw_derivative = (error - pid->last_error) / dt_s;
-        derivative = pid->derivative_alpha * pid->derivative
-                   + (1.0f - pid->derivative_alpha) * raw_derivative;
-    }
-
-    float next_integral = Clamp(pid->integral + error * dt_s, pid->output_limit);
-    float unclamped_output = pid->kp * error + pid->ki * next_integral
-                           + pid->kd * derivative;
-    float output = Clamp(unclamped_output, pid->output_limit);
-
-    /* Do not accumulate integral while saturation pushes in the same direction. */
-    if (output == unclamped_output || error * unclamped_output < 0.0f) {
-        pid->integral = next_integral;
-    }
-
+    pid->integral = Clamp(pid->integral + error * dt_s, pid->output_limit);
+    float derivative = (error - pid->last_error) / dt_s;
     pid->last_error = error;
-    pid->derivative = derivative;
-    pid->initialized = 1u;
 
-    return output;
+    return Clamp(pid->kp * error + pid->ki * pid->integral + pid->kd * derivative,
+                 pid->output_limit);
 }
 
 void PID_Reset(PidController *pid)
 {
     pid->integral = 0.0f;
     pid->last_error = 0.0f;
-    pid->derivative = 0.0f;
-    pid->initialized = 0u;
 }
